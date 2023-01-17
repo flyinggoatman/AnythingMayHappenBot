@@ -46,9 +46,11 @@ async def on_message(message):
             await message.delete()
             
             if match:
-                await message.channel.send(f"Link {message.content} added successfully!") 
+                await message.channel.send(f"Link {message.content} added successfully!")
+                print(f"Link {message.content} added successfully!")
             else:
-                await message.channel.send(f"Invalid link. Please enter a valid URL. {message.content}")
+                await message.channel.send(f"Invalid link. Please enter a valid URL.\n{message.content}")
+                print(f"Invalid link. Please enter a valid URL.\n{message.content}")
 
 bot.run(TOKEN)
 
