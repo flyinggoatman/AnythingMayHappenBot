@@ -12,6 +12,7 @@ SQL_HOST_2 = config('SQL_HOST_2', default='localhost')
 SQL_USER_2 = config('SQL_USER_2') or ''
 SQL_PASS_2 = config('SQL_PASS_2') or ''
 SQL_DATABASE_2 = config('SQL_DATABASE_2') or ''
+DISCORD_CHANNEL_ID = config('DISCORD_CHANNEL_ID', int)
 TOKEN = config('TOKEN', str)
 
 # Create a connection to the database
@@ -21,6 +22,8 @@ cnx = mysql.connector.connect(
     password=SQL_PASS_2,
     database=SQL_DATABASE_2
 )
+
+
 
 # Create a cursor object
 cursor = cnx.cursor()
