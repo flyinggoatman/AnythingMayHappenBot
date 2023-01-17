@@ -30,27 +30,39 @@ async def on_ready():
     print("Bot is running")
 @bot.event
 async def on_message(message):
-    
+    guild_id = message.guild.id
+    author = message.author
+    mention = author.mention
     if message.author == bot.user:
         return
     
-    print("test_1")
     DISCORD_CHANNEL_ID_int = int(DISCORD_CHANNEL_ID)
     if DISCORD_CHANNEL_ID_int == message.channel.id:
-        print("test_2")
         link = message.content
         # check if the link is a valid URL
         match = re.match(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)', link)
         if match:
-            link = mysql_push(cnx, cursor, link)
-            await message.delete()
-            
-            if match:
-                await message.channel.send(f"Link {message.content} added successfully!")
-                print(f"Link {message.content} added successfully!")
-            else:
-                await message.channel.send(f"Invalid link. Please enter a valid URL.\n{message.content}")
-                print(f"Invalid link. Please enter a valid URL.\n{message.content}")
+            query = "SELECT * FROM link WHERE link = %s"
+            cursor.execute(query, (link,))
+            result = cursor.fetchone()
+        
+        
+        
+        
+            if result:
+                link = mysql_push(cnx, cursor, link)
+                await message.delete()
+                
+                if match:
+                    await message.channel.send(f"Link {message.content} added successfully!")
+                    print(f"Link {message.content} added successfully!")
+                else:
+                    await message.channel.send(f"Invalid link. Please enter a valid URL.\n{message.content}")
+                    print(f"Invalid link. Please enter a valid URL.\n{message.content}")
+            else: 
+                await message.channel.send(f"{link} is already in the database {mention}.", delete_after=10)
+                await message.delete()
+                print(f"{link} is already in the database.")
 
 bot.run(TOKEN)
 
