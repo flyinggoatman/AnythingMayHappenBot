@@ -1,18 +1,14 @@
 from decouple import config
 
 
-def mysql_push(cnx, cursor, link):
-        # Remove "http://" or "https://" from the link if it exists
-        link = link.replace("http://", "").replace("https://", "")
+def mysql_push(link, session):
+    # Remove "http://" or "https://" from the link if it exists
+    link = link.replace("http://", "").replace("https://", "")
 
-        # Insert a new row into the "link" table
-        query = "INSERT INTO link (link, title, description, pict) VALUES (%s, %s, %s, %s)"
-        values = (link, None, None, None)
-        cursor.execute(query, values)
-
-        # Commit the changes
-        cnx.commit()
-        return link
+    new_link = Link(link=link, title=None, description=None, pict=None)
+    session.add(new_link)
+    session.commit()
+    return link
 
 
 def env_pull():
