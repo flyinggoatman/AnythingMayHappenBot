@@ -44,11 +44,16 @@ async def on_message(message):
     DISCORD_CHANNEL_ID_int = int(DISCORD_CHANNEL_ID)
     if DISCORD_CHANNEL_ID_int == message.channel.id:
         link = message.content
+        
+        
         # check if the link is a valid URL
         match = re.match(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)', link)
+        url = link
+        link = link.replace("https://", "")
         if match:
             result = session.query(Link).filter_by(link=link).first()
             if not result:
+                
                 new_link = Link(link=link)
                 session.add(new_link)
                 session.commit()
@@ -56,8 +61,8 @@ async def on_message(message):
                 await message.channel.send(f"Link {message.content} added successfully!")
                 print(f"Link {message.content} added successfully!")
             else: 
-                await message.channel.send(f"{link} is already in the database {mention}.", delete_after=10)
+                await message.channel.send(f"{message.content} is already in the database {mention}.", delete_after=10)
                 await message.delete()
-                print(f"{link} is already in the database.")
+                print(f"{message.content} is already in the database.")
 
 bot.run(TOKEN)
