@@ -19,11 +19,12 @@ SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, TOKEN = env_pull
 
 
 # create a session to execute queries
-allowed_channels = []
+allowed_channels = [int(DISCORD_CHANNEL_ID)]
 
 @bot.event
 async def on_ready():
     print("Bot is running")
+    
 @bot.event
 async def on_message(message):
     guild_id = message.guild.id
@@ -38,8 +39,9 @@ async def on_message(message):
     if message.content.startswith("!setchannel"):
         channel_id = int(message.content.split()[1])
         allowed_channels.append(channel_id)
+        
         await message.channel.send(f"Channel with ID {channel_id} has been added to the list of allowed channels.")
-    elif message.channel.id in DISCORD_CHANNEL_ID_int:
+    elif message.channel.id in allowed_channels:
         
         
         engine = create_engine(f'mysql://{SQL_USER}:{SQL_PASS}@{SQL_HOST}/{SQL_DATABASE}')
