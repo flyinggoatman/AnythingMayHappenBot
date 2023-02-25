@@ -1,7 +1,7 @@
 from decouple import config
 
 
-def mysql_push(link, session):
+def mysql_push(link, session, Link):
     # Remove "http://" or "https://" from the link if it exists
     link = link.replace("http://", "").replace("https://", "")
 
