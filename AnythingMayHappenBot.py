@@ -88,12 +88,20 @@ async def on_message(message):
                 session.add(new_link)
                 session.commit()
                 await message.delete()
-                await message.channel.send(f"{message.content} added successfully!")
+                await message.channel.send(f"{message.content} added successfully by {author.display_name}!")
                 print(f"Link {message.content} added successfully!")
             else: 
                 await message.channel.send(f"{message.content} is already in the database {mention}.", delete_after=10)
                 await message.delete()
                 print(f"{message.content} is already in the database.")
+@bot.event
+async def on_error(event, *args, **kwargs):
+    with open('err.log', 'a') as f:
+        if event == 'on_message':
+            f.write(f'Unhandled message: {args[0]}\n')
+        else:
+            raise
+
 
 
 bot.run(TOKEN)
