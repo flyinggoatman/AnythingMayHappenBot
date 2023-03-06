@@ -11,10 +11,13 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix='! ', intents=intents)
 
-SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, TOKEN = env_pull()
 
+def env_use():
+    SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, GUILD_ID, TOKEN, SUBREDDIT_CHANNEL, EXTENSION_CHANNEL, VIDEOS_CHANNEL, DEBUG_MODE, SECRET_TOKEN = env_pull()
+    return SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, GUILD_ID, TOKEN, SUBREDDIT_CHANNEL, EXTENSION_CHANNEL, VIDEOS_CHANNEL, DEBUG_MODE, SECRET_TOKEN
+
+SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, GUILD_ID, TOKEN, SUBREDDIT_CHANNEL, EXTENSION_CHANNEL, VIDEOS_CHANNEL, DEBUG_MODE, SECRET_TOKEN = env_use()
 # create an engine to connect to the database
-
 
 
 
@@ -23,7 +26,26 @@ allowed_channels = [int(DISCORD_CHANNEL_ID)]
 
 @bot.event
 async def on_ready():
-    print("Bot is running")
+    SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE, DISCORD_CHANNEL_ID, GUILD_ID, TOKEN, SUBREDDIT_CHANNEL, EXTENSION_CHANNEL, VIDEOS_CHANNEL, DEBUG_MODE, SECRET_TOKEN = env_use()
+    print(f"Bots name: {bot.user.name}")
+    print(f"Bots ID: {bot.user.id}")
+    print()
+    print(DEBUG_MODE)
+    DEBUG_MODE_STR = str(DEBUG_MODE)
+    if DEBUG_MODE == True:
+        print(f"{'##':#^150}\n{' DEBUG MODE IS ON ':#^150}\n{'##':#^150}")
+        print(f"SQL_HOST: {SQL_HOST}")
+        print(f"SQL_USER: {SQL_USER}")
+        print(f"SQL_PASS: {SQL_PASS}")
+        print(f"SQL_DATABASE: {SQL_DATABASE}")
+        print(f"DISCORD_CHANNEL_ID: {DISCORD_CHANNEL_ID}")
+        print(f"GUILD_ID: {GUILD_ID}")
+        print(f"SUBREDDIT_CHANNEL: {SUBREDDIT_CHANNEL}")
+        print(f"EXTENSION_CHANNEL: {EXTENSION_CHANNEL}")
+        print(f"VIDEOS_CHANNEL: {VIDEOS_CHANNEL}")
+        if SECRET_TOKEN == True:
+            print(f"TOKEN: {TOKEN}")
+
     
 @bot.event
 async def on_message(message):
@@ -33,6 +55,9 @@ async def on_message(message):
     discord_name = author.name
     if message.author == bot.user:
         return
+    SUBREDDIT_CHANNEL_int = int(SUBREDDIT_CHANNEL)
+    EXTENSION_CHANNEL_int = int(EXTENSION_CHANNEL)
+    VIDEOS_CHANNEL_int = int(VIDEOS_CHANNEL)
     
     
     DISCORD_CHANNEL_ID_int = int(DISCORD_CHANNEL_ID)
@@ -53,7 +78,6 @@ async def on_message(message):
             id = Column(Integer, primary_key=True)
             link = Column(String)
         Base.metadata.create_all(engine)
-        
         
         
         Session = sessionmaker(bind=engine)
@@ -83,17 +107,31 @@ async def on_message(message):
         if match or match_2:
             result = session.query(Link).filter_by(link=link).first()
             if not result:
-                
                 new_link = Link(link=link)
                 session.add(new_link)
                 session.commit()
                 await message.delete()
-                await message.channel.send(f"{message.content} added successfully by {author.display_name}!")
-                print(f"Link {message.content} added successfully!")
+                if re.search(r'(chrome\.google\.com/webstore|addons\.mozilla\.org|microsoftedge\.microsoft\.com/addons/detail/|addons\.opera\.com/en/extensions/details/)', url):
+                    
+                    target_channel = bot.get_channel(EXTENSION_CHANNEL_int)
+                    await target_channel.send(f"{url} added successfully by {author.display_name}!")
+                elif re.search(r"reddit\.com/r/", url):
+                    target_channel = bot.get_channel(SUBREDDIT_CHANNEL_int)
+                    await target_channel.send(f"{url} added successfully by {author.display_name}!")
+                    
+                elif re.search(r'(\/watch\?v=|youtu\.be/)', url):
+                    target_channel = bot.get_channel(VIDEOS_CHANNEL_int)
+                    await target_channel.send(f"{url} added successfully by {author.display_name}!")
+                else:
+                    target_channel = bot.get_channel(DISCORD_CHANNEL_ID_int)
+                    await target_channel.send(f"{url} added successfully by {author.display_name}!")
+                    print(f"Link {url} added successfully!")
             else: 
-                await message.channel.send(f"{message.content} is already in the database {mention}.", delete_after=10)
+                
+                target_channel = bot.get_channel(DISCORD_CHANNEL_ID_int)
+                await target_channel.send(f"{url} is already in the database {mention}.", delete_after=10)
                 await message.delete()
-                print(f"{message.content} is already in the database.")
+                print(f"{url} is already in the database.")
 @bot.event
 async def on_error(event, *args, **kwargs):
     with open('err.log', 'a') as f:
