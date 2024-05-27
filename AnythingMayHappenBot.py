@@ -52,7 +52,9 @@ async def on_message(message):
 
     # Split the message into lines to handle multiple links
     lines = message.content.split('\n')
-
+    
+    # if message.content.startswith("htttp://") or message.content.startswith("https://"):
+    #     await message.delete()
     for line in lines:
         line = line.strip()
         if not line:
@@ -79,6 +81,15 @@ async def on_message(message):
         link = url.replace("http://", "").replace("https://", "")
 
         if match or match_2:
+            try:
+                await message.delete()  # Delete the user's message if it contains a valid link
+                print(f"Deleted message from {message.author} in {message.channel}")
+            except discord.Forbidden:
+                break
+            except discord.NotFound:
+                break
+            except discord.HTTPException as e:
+                break
             engine = await connector_function(SQL_HOST, SQL_USER, SQL_PASS, SQL_DATABASE)
             if not engine:
                 return
@@ -120,5 +131,6 @@ async def on_message(message):
                 else:
                     await target_channel.send(f"{url} is already in the database {message.author.mention}.", delete_after=5)
                 print(f"{url} is already in the database.")
+
 
 bot.run(TOKEN)

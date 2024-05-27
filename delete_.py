@@ -11,7 +11,6 @@ from sqlalchemy.orm import sessionmaker
 import requests
 from decouple import config
 import urllib3
-import time
 from sqlalchemy.ext.declarative import declarative_base
 
 

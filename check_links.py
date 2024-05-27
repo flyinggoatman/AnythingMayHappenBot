@@ -11,7 +11,6 @@ f = open("not_working.txt", "w")
 f.write(f"{'Not Working Links File.':#^100}\n")
 f.close()
 
-
 # MySQL login information
 SQL_HOST = config('SQL_HOST', default='localhost')
 SQL_USER = config('SQL_USER')
@@ -25,7 +24,6 @@ cnx = mysql.connector.connect(
     password=SQL_PASS,
     database=SQL_DATABASE
 )
-
 
 # Check the connection before fetching links
 while True:
@@ -42,43 +40,36 @@ cursor = cnx.cursor()
 query = "SELECT link FROM link"
 cursor.execute(query)
 results = cursor.fetchall()
-print(f"{'Connected to database and begining labeling.':#^100}")
+
+total_links = len(results)  # Get the total number of links
+
+print(f"{'Connected to database and beginning labeling.':#^100}")
+
 # Check if each link is working or not
-for result in results:
+for index, result in enumerate(results, start=1):
     link = result[0]
     # Add 'http://' to the link
     url = 'http://' + link
+    print(f"{index}/{total_links} checking {url}")
     try:
         cnx.ping(reconnect=True)
         # Send a GET request to the link
         response = requests.get(url, timeout=10)
-        print(f"checking {url}")
         # Check the status code of the response
         if response.status_code == 200 or response.status_code == 301 or response.status_code == 302:
-            print(f"Link {url} is working.")
-            f1 = open("working.txt", mode="a")
-            
-            f1.write(f"{link}\n")
-            f1.close()
-        else:    
-            print(f"Link {url} is not working.")
-            f = open("not_working.txt", mode="a")
-            
-            f.write(f"{link}\n")
-            f.close()
-    except requests.exceptions.RequestException or urllib3.exceptions.LocationParseError as e:
-        print(f"Link {url} is not working.")
-        f = open("not_working.txt", mode="a")
-        
-        f.write(f"{link}\n")
-        f.close()
-            
+            print(f"{index}/{total_links} Link {url} is working.")
+            with open("working.txt", mode="a") as f1:
+                f1.write(f"{link}\n")
+        else:
+            print(f"{index}/{total_links} Link {url} is not working.")
+            with open("not_working.txt", mode="a") as f2:
+                f2.write(f"{link}\n")
+    except (requests.exceptions.RequestException, urllib3.exceptions.LocationParseError):
+        print(f"{index}/{total_links} Link {url} is not working.")
+        with open("not_working.txt", mode="a") as f2:
+            f2.write(f"{link}\n")
 
 # Close the cursor and connection
 cursor.close()
 cnx.close()
 print(f"{'The items have been labeled.':#^100}")
-
-
-
-
